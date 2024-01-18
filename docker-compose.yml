@@ -1,0 +1,40 @@
+version: '3.8'
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: news-aggregator-app
+    container_name: news-aggregator-app
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+      - ./php/local.ini:/usr/local/etc/php/conf.d/local.ini
+    networks:
+      - newsnet
+  nginx:
+    image: nginx:alpine
+    container_name: news-aggregator-nginx
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx:/etc/nginx/conf.d
+      - ./:/var/www
+    networks:
+      - newsnet
+  db:
+    image: mysql:5.7
+    container_name: news-aggregator-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: news_aggregator
+      MYSQL_ROOT_PASSWORD: root
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    networks:
+      - newsnet
+networks:
+  newsnet:
+    driver: bridge
